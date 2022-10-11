@@ -15,6 +15,7 @@ def save_wall_photo(photo_server, photo_photo, photo_hash, access_token, group_i
     }
     url = "https://api.vk.com/method/photos.saveWallPhoto"
     response = requests.post(url, params=params)
+    response.raise_for_status()
     return response.json()["response"][0]["id"]
 
 
@@ -30,25 +31,27 @@ def get_comics():
     image = requests.get(response.json()["img"])
     with open(filename, 'wb') as file:
         file.write(image.content)
+    response.raise_for_status()
     return response.json()["alt"]
 
 
-def get_upload_url(access_token, group_id, user_id):
+def get_upload_url(access_token, group_id):
     params = {
         "group_id": group_id,
         "access_token": access_token,
         "v": 5.131,
-        "user_id": user_id
     }
     url = "https://api.vk.com/method/photos.getWallUploadServer"
     response = requests.get(url, params)
+    response.raise_for_status()
     return response.json()["response"]["upload_url"]
-  
+
 
 def send_photo_on_wall(upload_url):
     with open("comics.jpg", "rb") as file:
         response = requests.post(upload_url, files={"photo": file})
     params = response.json()
+    response.raise_for_status()
     return params["server"], params["photo"], params["hash"]
 
 
@@ -61,8 +64,10 @@ def post_image(group_id, media_id, access_token, message, user_id):
         "message": message,
         "v": 5.131
     }
+    response = requests.post(url, params)
+    response.raise_for_status()
 
-  
+
 def main():
     load_dotenv()
     message = get_comics()
@@ -70,7 +75,7 @@ def main():
     vk_group_id = os.environ['VK_GROUP_ID']
     vk_user_id = os.environ['VK_USER_ID']
     try:
-        upload_url = get_upload_url(vk_access_token, vk_group_id, vk_user_id)
+        upload_url = get_upload_url(vk_access_token, vk_group_id)
         photo_server, photo_photo, photo_hash = send_photo_on_wall(upload_url)
         media_id = save_wall_photo(photo_server, photo_photo, photo_hash, vk_access_token, vk_group_id)
         post_image(vk_group_id, media_id, vk_access_token, message, vk_user_id)
