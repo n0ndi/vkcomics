@@ -4,14 +4,14 @@ from random import randint
 from dotenv import load_dotenv
 
 
-def save_wall_photo(photo_params, access_token, group_id):
+def save_wall_photo(photo_server, photo_photo, photo_hash, access_token, group_id):
     params = {
-        "server": photo_params["server"],
-        "photo": photo_params["photo"],
-        "hash": photo_params["hash"],
+        "server": photo_server,
+        "photo": photo_photo,
+        "hash": photo_hash,
         "access_token": access_token,
         "v": 5.131,
-        "group_id": group_id,
+        "group_id": group_id
     }
     url = "https://api.vk.com/method/photos.saveWallPhoto"
     response = requests.post(url, params=params)
@@ -48,7 +48,8 @@ def get_upload_url(access_token, group_id, user_id):
 def send_photo_on_wall(upload_url):
     with open("comics.jpg", "rb") as file:
         response = requests.post(upload_url, files={"photo": file})
-    return response.json()
+    params = response.json()
+    return params["server"], params["photo"], params["hash"]
 
 
 def post_image(group_id, media_id, access_token, message, user_id):
@@ -60,21 +61,21 @@ def post_image(group_id, media_id, access_token, message, user_id):
         "message": message,
         "v": 5.131
     }
-    response = requests.post(url, params)
 
   
 def main():
     load_dotenv()
     message = get_comics()
-    access_token = os.environ['ACCESS_TOKEN']
-    client_id = os.environ['CLIENT_ID']
-    group_id = os.environ['GROUP_ID']
-    user_id = os.environ['USER_ID']
-    upload_url = get_upload_url(access_token, group_id, user_id)
-    photo_params = send_photo_on_wall(upload_url)
-    media_id = save_wall_photo(photo_params, access_token, group_id)
-    post_image(group_id, media_id, access_token, message, user_id)
-    os.remove("comics.jpg")
+    vk_access_token = os.environ['VK_ACCESS_TOKEN']
+    vk_group_id = os.environ['VK_GROUP_ID']
+    vk_user_id = os.environ['VK_USER_ID']
+    try:
+        upload_url = get_upload_url(vk_access_token, vk_group_id, vk_user_id)
+        photo_server, photo_photo, photo_hash = send_photo_on_wall(upload_url)
+        media_id = save_wall_photo(photo_server, photo_photo, photo_hash, vk_access_token, vk_group_id)
+        post_image(vk_group_id, media_id, vk_access_token, message, vk_user_id)
+    finally:
+        os.remove("comics.jpg")
 
 
 if __name__ == "__main__":
