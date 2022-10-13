@@ -28,10 +28,11 @@ def get_comics():
     random_comic_number = randint(1, current_comic_number)
     random_comic_url = f"https://xkcd.com/{random_comic_number}/info.0.json"
     response = requests.get(random_comic_url)
+    response.raise_for_status()
     image = requests.get(response.json()["img"])
+    response.raise_for_status()
     with open(filename, 'wb') as file:
         file.write(image.content)
-    response.raise_for_status()
     return response.json()["alt"]
 
 
@@ -62,7 +63,8 @@ def post_image(group_id, media_id, access_token, message, user_id):
         "owner_id": f"-{group_id}",
         "attachments": f"photo{user_id}_{media_id}",
         "message": message,
-        "v": 5.131
+        "v": 5.131,
+        "from_group": 1
     }
     response = requests.post(url, params)
     response.raise_for_status()
