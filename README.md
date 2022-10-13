@@ -16,9 +16,9 @@
 
 
 ```
-ACCESS_TOKEN = личный ключ
-GROUP_ID = ID сообщества
-USER_ID = ID вашей страницы
+VK_ACCESS_TOKEN = личный ключ
+VK_GROUP_ID = ID сообщества
+VK_USER_ID = ID вашей страницы
 
 ```
 
